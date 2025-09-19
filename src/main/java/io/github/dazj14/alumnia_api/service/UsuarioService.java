@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import io.github.dazj14.alumnia_api.model.Admin; // <-- AÑADIR
+import io.github.dazj14.alumnia_api.repository.AdminRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +28,7 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final AlumnoRepository alumnoRepository;
     private final ProfesorRepository profesorRepository;
+    private final AdminRepository adminRepository;
     private final RolRepository rolRepository;
     private final CarreraRepository carreraRepository;
     private final PlanEstudioRepository planEstudioRepository;
@@ -78,38 +81,51 @@ public class UsuarioService {
         var rol = rolRepository.findById(request.getIdRol())
                 .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
 
-        if (rol.getNombreRol().equalsIgnoreCase("ALUMNO")) {
-            var carrera = carreraRepository.findById(request.getIdCarrera())
-                    .orElseThrow(() -> new RuntimeException("Carrera no encontrada"));
-            var planEstudio = planEstudioRepository.findById(request.getIdPlanEstudio())
-                    .orElseThrow(() -> new RuntimeException("Plan de estudios no encontrado"));
+        String rolNombre = rol.getNombreRol().toUpperCase(); // Usar mayúsculas para ser consistente
 
-            Alumno alumno = new Alumno();
-            alumno.setNombre(request.getNombre());
-            alumno.setApellido(request.getApellido());
-            alumno.setCorreo(request.getCorreo());
-            alumno.setPassword(passwordEncoder.encode(request.getPassword()));
-            alumno.setFecha_creacion(LocalDateTime.now());
-            alumno.setRol(rol);
-            alumno.setMatricula(request.getMatricula());
-            alumno.setCarrera(carrera);
-            alumno.setPlanEstudio(planEstudio);
-            return alumnoRepository.save(alumno);
+        switch (rolNombre) {
+            case "ALUMNO":
+                var carrera = carreraRepository.findById(request.getIdCarrera())
+                        .orElseThrow(() -> new RuntimeException("Carrera no encontrada"));
+                var planEstudio = planEstudioRepository.findById(request.getIdPlanEstudio())
+                        .orElseThrow(() -> new RuntimeException("Plan de estudios no encontrado"));
 
-        } else if (rol.getNombreRol().equalsIgnoreCase("MAESTRO")) {
-            Profesor profesor = new Profesor();
-            profesor.setNombre(request.getNombre());
-            profesor.setApellido(request.getApellido());
-            profesor.setCorreo(request.getCorreo());
-            profesor.setPassword(passwordEncoder.encode(request.getPassword()));
-            profesor.setFecha_creacion(LocalDateTime.now());
-            profesor.setRol(rol);
-            profesor.setNumeroEmpleado(request.getNumeroEmpleado());
-            profesor.setEspecialidad(request.getEspecialidad());
-            return profesorRepository.save(profesor);
-        } else {
-            // Lógica para crear otros tipos de usuarios (como otro Admin) si es necesario
-            throw new IllegalArgumentException("Tipo de rol no soportado para la creación: " + rol.getNombreRol());
+                Alumno alumno = new Alumno();
+                alumno.setNombre(request.getNombre());
+                alumno.setApellido(request.getApellido());
+                alumno.setCorreo(request.getCorreo());
+                alumno.setPassword(passwordEncoder.encode(request.getPassword()));
+                alumno.setFecha_creacion(LocalDateTime.now());
+                alumno.setRol(rol);
+                alumno.setMatricula(request.getMatricula());
+                alumno.setCarrera(carrera);
+                alumno.setPlanEstudio(planEstudio);
+                return alumnoRepository.save(alumno);
+
+            case "MAESTRO":
+                Profesor profesor = new Profesor();
+                profesor.setNombre(request.getNombre());
+                profesor.setApellido(request.getApellido());
+                profesor.setCorreo(request.getCorreo());
+                profesor.setPassword(passwordEncoder.encode(request.getPassword()));
+                profesor.setFecha_creacion(LocalDateTime.now());
+                profesor.setRol(rol);
+                profesor.setNumeroEmpleado(request.getNumeroEmpleado());
+                profesor.setEspecialidad(request.getEspecialidad());
+                return profesorRepository.save(profesor);
+
+            case "ADMINISTRADOR": // <-- LÓGICA AÑADIDA
+                Admin admin = new Admin();
+                admin.setNombre(request.getNombre());
+                admin.setApellido(request.getApellido());
+                admin.setCorreo(request.getCorreo());
+                admin.setPassword(passwordEncoder.encode(request.getPassword()));
+                admin.setFecha_creacion(LocalDateTime.now());
+                admin.setRol(rol);
+                return adminRepository.save(admin);
+
+            default:
+                throw new IllegalArgumentException("Tipo de rol no soportado para la creación: " + rol.getNombreRol());
         }
     }
 
