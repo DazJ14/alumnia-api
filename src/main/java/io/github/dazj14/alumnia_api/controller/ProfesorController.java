@@ -44,12 +44,16 @@ public class ProfesorController {
         return ResponseEntity.ok(profesorService.findGruposAsignados(profesorCorreo));
     }
 
+    @Operation(summary = "Obtener la lista de alumnos de un grupo específico",
+            description = "Devuelve todos los alumnos que están inscritos en un grupo. Se debe proporcionar el ID del grupo.")
     @GetMapping("/grupos/{idGrupo}/alumnos")
     @PreAuthorize("hasRole('MAESTRO')")
     public ResponseEntity<List<AlumnoInscritoDto>> getAlumnosDeGrupo(@PathVariable Integer idGrupo) {
         return ResponseEntity.ok(profesorService.findAlumnosPorGrupo(idGrupo));
     }
 
+    @Operation(summary = "Obtener todas las actividades de un grupo",
+            description = "Devuelve una lista de todas las actividades (tareas, exámenes, etc.) que el profesor ha creado para un grupo específico.")
     @GetMapping("/grupos/{idGrupo}/actividades")
     @PreAuthorize("hasRole('MAESTRO')")
     public ResponseEntity<List<ActividadDto>> getActividadesDeGrupo(@PathVariable Integer idGrupo, Principal principal) {
@@ -57,6 +61,8 @@ public class ProfesorController {
         return ResponseEntity.ok(actividades);
     }
 
+    @Operation(summary = "Crear una nueva actividad para un grupo",
+            description = "Permite al profesor crear una nueva actividad evaluable. El profesor autenticado debe ser el titular del grupo.")
     @PostMapping("/grupos/{idGrupo}/actividades")
     @PreAuthorize("hasRole('MAESTRO')")
     public ResponseEntity<ActividadDto> createActividad(@PathVariable Integer idGrupo,
@@ -66,6 +72,8 @@ public class ProfesorController {
         return new ResponseEntity<>(nuevaActividad, HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Obtener calificaciones de una actividad",
+            description = "Permite al profesor obtener todas las calificaciones de los alumnos en cierta actividad.")
     @GetMapping("/actividades/{idActividad}/calificaciones")
     @PreAuthorize("hasRole('MAESTRO')")
     public ResponseEntity<List<CalificacionDto>> getCalificacionesDeActividad(@PathVariable Integer idActividad, Principal principal) {
@@ -73,6 +81,8 @@ public class ProfesorController {
         return ResponseEntity.ok(calificaciones);
     }
 
+    @Operation(summary = "Asignar calificacion",
+            description = "Permite al maestro asignar una calificacion en la actividad.")
     @PostMapping("/actividades/{idActividad}/calificaciones")
     @PreAuthorize("hasRole('MAESTRO')")
     public ResponseEntity<CalificacionActividad> asignarCalificacion(@PathVariable Integer idActividad,
@@ -82,6 +92,8 @@ public class ProfesorController {
         return ResponseEntity.ok(calificacionGuardada);
     }
 
+    @Operation(summary = "Actualizar una actividad existente",
+            description = "Permite al profesor modificar el título, descripción o calificación máxima de una actividad que haya creado previamente.")
     @PutMapping("/actividades/{idActividad}")
     @PreAuthorize("hasRole('MAESTRO')")
     public ResponseEntity<ActividadDto> updateActividad(@PathVariable Integer idActividad,
@@ -91,6 +103,8 @@ public class ProfesorController {
         return ResponseEntity.ok(actividadActualizada);
     }
 
+    @Operation(summary = "Borrar una actividad",
+            description = "Elimina una actividad. Importante: no se puede borrar si ya tiene calificaciones asignadas a alumnos.")
     @DeleteMapping("/actividades/{idActividad}")
     @PreAuthorize("hasRole('MAESTRO')")
     public ResponseEntity<Void> deleteActividad(@PathVariable Integer idActividad, Principal principal) {

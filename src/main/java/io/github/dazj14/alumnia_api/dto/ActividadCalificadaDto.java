@@ -7,6 +7,6 @@ import lombok.Data;
 @Builder
 public class ActividadCalificadaDto {
     private String tituloActividad;
-    private Float califMaxima;
+    private Float ponderacion;
     private Float calificacionObtenida; // Puede ser nulo si no está calificada
 }

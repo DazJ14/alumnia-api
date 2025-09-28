@@ -9,6 +9,5 @@ public class ActividadDto {
     private Integer id;
     private String titulo;
     private String descripcion;
-    private Float califMaxima;
     private Integer idGrupo;
 }

@@ -14,6 +14,8 @@ import io.github.dazj14.alumnia_api.dto.UpdateUsuarioRequest;
 import io.github.dazj14.alumnia_api.dto.UsuarioDto;
 import io.github.dazj14.alumnia_api.dto.GrupoDto;
 import io.github.dazj14.alumnia_api.dto.UpdateGrupoRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,12 +29,15 @@ import java.util.List;
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMINISTRADOR')")
+@Tag(name = "1. Admin Management", description = "Endpoints para operaciones del rol de Administrador.")
 public class AdminController {
 
     private final MateriaService materiaService;
     private final UsuarioService usuarioService;
     private final GrupoService grupoService;
 
+    @Operation(summary = "Obtener todas las materias creadas.",
+            description = "Devuelve una lista de los grupos (clases) que el profesor está impartiendo en el periodo académico actual.")
     @GetMapping("/materias")
     public ResponseEntity<List<Materia>> getAllMaterias() {
         return ResponseEntity.ok(materiaService.findAll());

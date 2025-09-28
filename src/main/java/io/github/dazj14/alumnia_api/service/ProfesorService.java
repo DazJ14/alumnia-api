@@ -79,7 +79,7 @@ public class ProfesorService {
         nuevaActividad.setGrupo(grupo);
         nuevaActividad.setTitulo(request.getTitulo());
         nuevaActividad.setDescripcion(request.getDescripcion());
-        nuevaActividad.setCalifMaxima(request.getCalifMaxima());
+        nuevaActividad.setPonderacion(request.getPonderacion());
 
         var actividadGuardada = actividadRepository.save(nuevaActividad);
         return toActividadDto(actividadGuardada);
@@ -106,7 +106,7 @@ public class ProfesorService {
 
         actividad.setTitulo(request.getTitulo());
         actividad.setDescripcion(request.getDescripcion());
-        actividad.setCalifMaxima(request.getCalifMaxima());
+        actividad.setPonderacion(request.getPonderacion());
 
         var actividadActualizada = actividadRepository.save(actividad);
         return toActividadDto(actividadActualizada);
@@ -151,7 +151,6 @@ public class ProfesorService {
                 .id(actividad.getId())
                 .titulo(actividad.getTitulo())
                 .descripcion(actividad.getDescripcion())
-                .califMaxima(actividad.getCalifMaxima())
                 .idGrupo(actividad.getGrupo().getId())
                 .build();
     }

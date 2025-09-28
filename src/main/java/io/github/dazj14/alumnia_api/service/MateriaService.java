@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import io.github.dazj14.alumnia_api.dto.UpdateMateriaRequest; // Importar DTO
 
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -30,6 +31,16 @@ public class MateriaService {
         nuevaMateria.setClaveMateria(request.getClaveMateria());
         nuevaMateria.setNombreMateria(request.getNombreMateria());
         nuevaMateria.setCreditos(request.getCreditos());
+
+        if (request.getPrerrequisitoIds() != null && !request.getPrerrequisitoIds().isEmpty()) {
+            List<Materia> prerrequisitos = materiaRepository.findAllById(request.getPrerrequisitoIds());
+
+            if (prerrequisitos.size() != request.getPrerrequisitoIds().size()) {
+                throw new ResourceNotFoundException("Una o más materias de prerrequisito no fueron encontradas.");
+            }
+
+            nuevaMateria.setPrerrequisitos(new HashSet<>(prerrequisitos));
+        }
 
         return materiaRepository.save(nuevaMateria);
     }

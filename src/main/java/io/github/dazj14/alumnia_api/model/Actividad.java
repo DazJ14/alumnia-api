@@ -23,6 +23,6 @@ public class Actividad {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(name = "calif_maxima")
-    private Float califMaxima;
+    @Column
+    private Float ponderacion;
 }

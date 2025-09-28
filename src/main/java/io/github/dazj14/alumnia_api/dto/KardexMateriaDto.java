@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class KardexMateriaDto {
+    private Integer idMateriaInscrita;
     private String nombreMateria;
     private Float calificacionFinal;
     private Integer creditos;

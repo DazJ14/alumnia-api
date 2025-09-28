@@ -19,8 +19,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         var user = usuarioRepository.findByCorreo(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con el correo: " + username));
 
+        return toUserDetails(user);
+    }
+
+    public UserDetails loadUserById(Integer id) throws UsernameNotFoundException {
+        var user = usuarioRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con ID: " + id));
+
+        return toUserDetails(user);
+    }
+
+    private UserDetails toUserDetails(io.github.dazj14.alumnia_api.model.Usuario user) {
         return User.builder()
-                .username(user.getCorreo())
+                .username(user.getId().toString())
                 .password(user.getPassword())
                 .roles(user.getRol().getNombreRol())
                 .build();

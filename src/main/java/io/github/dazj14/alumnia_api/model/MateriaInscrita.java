@@ -24,7 +24,7 @@ public class MateriaInscrita {
     @Column(name = "calificacion_final")
     private Float calificacionFinal;
 
-    @Column(length = 50)
+    @Column(name = "estatus", length = 50)
     private String status; // Ej: 'Cursando', 'Aprobado', 'Reprobado'
 
     private Integer oportunidad;

@@ -25,21 +25,24 @@ public class AlumnoController {
     @GetMapping("/me/materias-inscritas")
     @PreAuthorize("hasRole('ALUMNO')")
     public ResponseEntity<List<MateriaInscritaDto>> getMisMaterias(Principal principal) {
-        var materias = alumnoService.findMateriasInscritasActuales(principal.getName());
+        Integer alumnoId = Integer.parseInt(principal.getName());
+        var materias = alumnoService.findMateriasInscritasActuales(alumnoId);
         return ResponseEntity.ok(materias);
     }
 
     @GetMapping("/me/materias-inscritas/{idMateriaInscrita}/calificaciones")
     @PreAuthorize("hasRole('ALUMNO')")
     public ResponseEntity<DesgloseCalificacionesDto> getDesgloseDeMateria(@PathVariable Integer idMateriaInscrita, Principal principal) {
-        var desglose = alumnoService.findDesgloseCalificaciones(idMateriaInscrita, principal.getName());
+        Integer alumnoId = Integer.parseInt(principal.getName());
+        var desglose = alumnoService.findDesgloseCalificaciones(idMateriaInscrita, alumnoId);
         return ResponseEntity.ok(desglose);
     }
 
     @GetMapping("/me/kardex")
     @PreAuthorize("hasRole('ALUMNO')")
     public ResponseEntity<KardexDto> getMiKardex(Principal principal) {
-        var kardex = alumnoService.findKardex(principal.getName());
+        Integer alumnoId = Integer.parseInt(principal.getName());
+        var kardex = alumnoService.findKardex(alumnoId);
         return ResponseEntity.ok(kardex);
     }
 }

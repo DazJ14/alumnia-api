@@ -5,6 +5,7 @@ import io.github.dazj14.alumnia_api.dto.LoginRequest;
 import io.github.dazj14.alumnia_api.repository.UsuarioRepository;
 import io.github.dazj14.alumnia_api.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,15 +25,7 @@ public class AuthService {
             throw new IllegalArgumentException("Correo o contraseña inválidos.");
         }
 
-        // Creamos un UserDetails simple para pasar al generador de token
-        var userDetails = org.springframework.security.core.userdetails.User.builder()
-                .username(user.getCorreo())
-                .password(user.getPassword())
-                .roles(user.getRol().getNombreRol())
-                .build();
-        System.out.println(userDetails);
-
-        var token = jwtService.generateToken(userDetails);
+        var token = jwtService.generateToken(user);
         return new AuthResponse(token, user.getRol().getNombreRol());
     }
 }
