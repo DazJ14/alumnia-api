@@ -7,6 +7,7 @@ import io.github.dazj14.alumnia_api.repository.MateriaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import io.github.dazj14.alumnia_api.dto.UpdateMateriaRequest; // Importar DTO
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +27,7 @@ public class MateriaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Materia no encontrada con ID: " + id));
     }
 
+    @Transactional
     public Materia create(CreateMateriaRequest request) {
         Materia nuevaMateria = new Materia();
         nuevaMateria.setClaveMateria(request.getClaveMateria());

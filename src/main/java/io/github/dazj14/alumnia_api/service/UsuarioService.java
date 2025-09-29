@@ -1,14 +1,11 @@
 package io.github.dazj14.alumnia_api.service;
 
-import io.github.dazj14.alumnia_api.dto.CreateUsuarioRequest;
+import io.github.dazj14.alumnia_api.dto.*;
 import io.github.dazj14.alumnia_api.model.Alumno;
 import io.github.dazj14.alumnia_api.model.Profesor;
 import io.github.dazj14.alumnia_api.model.Usuario;
 import io.github.dazj14.alumnia_api.repository.*;
-import io.github.dazj14.alumnia_api.dto.UpdateUsuarioRequest;
-import io.github.dazj14.alumnia_api.dto.UsuarioDto;
 import io.github.dazj14.alumnia_api.repository.*;
-import io.github.dazj14.alumnia_api.dto.ChangePasswordRequest;
 import io.github.dazj14.alumnia_api.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,8 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import io.github.dazj14.alumnia_api.model.Admin; // <-- AÑADIR
 import io.github.dazj14.alumnia_api.repository.AdminRepository;
 
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,11 +56,9 @@ public class UsuarioService {
         usuario.setCorreo(request.getCorreo());
 
         // Actualizar campos específicos según el tipo de usuario
-        if (usuario instanceof Alumno) {
-            Alumno alumno = (Alumno) usuario;
+        if (usuario instanceof Alumno alumno) {
             alumno.setMatricula(request.getMatricula());
-        } else if (usuario instanceof Profesor) {
-            Profesor profesor = (Profesor) usuario;
+        } else if (usuario instanceof Profesor profesor) {
             profesor.setNumeroEmpleado(request.getNumeroEmpleado());
         }
 
@@ -77,52 +74,91 @@ public class UsuarioService {
     }
 
     @Transactional
-    public Usuario create(CreateUsuarioRequest request) {
+    public CreateUsuarioResponse create(CreateUsuarioRequest request) {
         var rol = rolRepository.findById(request.getIdRol())
-                .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado"));
 
-        String rolNombre = rol.getNombreRol().toUpperCase(); // Usar mayúsculas para ser consistente
+        String rolNombre = rol.getNombreRol().toUpperCase();
+
+        // --- LÓGICA DE GENERACIÓN DE CORREO Y CONTRASEÑA ---
+        String correo = generarCorreoUnico(request.getNombre(), request.getApellido(), rolNombre);
+        String passwordTemporal = generarPasswordTemporal();
 
         switch (rolNombre) {
             case "ALUMNO":
                 var carrera = carreraRepository.findById(request.getIdCarrera())
-                        .orElseThrow(() -> new RuntimeException("Carrera no encontrada"));
+                        .orElseThrow(() -> new ResourceNotFoundException("Carrera no encontrada"));
                 var planEstudio = planEstudioRepository.findById(request.getIdPlanEstudio())
-                        .orElseThrow(() -> new RuntimeException("Plan de estudios no encontrado"));
+                        .orElseThrow(() -> new ResourceNotFoundException("Plan de estudios no encontrado"));
 
                 Alumno alumno = new Alumno();
                 alumno.setNombre(request.getNombre());
                 alumno.setApellido(request.getApellido());
-                alumno.setCorreo(request.getCorreo());
-                alumno.setPassword(passwordEncoder.encode(request.getPassword()));
-                alumno.setFecha_creacion(LocalDateTime.now());
                 alumno.setRol(rol);
-                alumno.setMatricula(request.getMatricula());
+                alumno.setFecha_creacion(LocalDateTime.now());
                 alumno.setCarrera(carrera);
                 alumno.setPlanEstudio(planEstudio);
-                return alumnoRepository.save(alumno);
+
+                // Generar y asignar datos automáticos
+                alumno.setMatricula(generarMatriculaUnica());
+                alumno.setCorreo(correo);
+                alumno.setPassword(passwordEncoder.encode(passwordTemporal));
+
+                Alumno alumnoGuardado = alumnoRepository.save(alumno);
+
+                // Construir y devolver el DTO de respuesta
+                return CreateUsuarioResponse.builder()
+                        .nombre(alumnoGuardado.getNombre())
+                        .apellido(alumnoGuardado.getApellido())
+                        .correo(alumnoGuardado.getCorreo())
+                        .passwordTemporal(passwordTemporal) // Devolvemos la contraseña sin encriptar
+                        .matricula(alumnoGuardado.getMatricula())
+                        .build();
 
             case "MAESTRO":
                 Profesor profesor = new Profesor();
                 profesor.setNombre(request.getNombre());
                 profesor.setApellido(request.getApellido());
-                profesor.setCorreo(request.getCorreo());
-                profesor.setPassword(passwordEncoder.encode(request.getPassword()));
-                profesor.setFecha_creacion(LocalDateTime.now());
                 profesor.setRol(rol);
-                profesor.setNumeroEmpleado(request.getNumeroEmpleado());
+                profesor.setFecha_creacion(LocalDateTime.now());
                 profesor.setEspecialidad(request.getEspecialidad());
-                return profesorRepository.save(profesor);
 
-            case "ADMINISTRADOR": // <-- LÓGICA AÑADIDA
+                // Generar y asignar datos automáticos
+                profesor.setNumeroEmpleado(generarNumeroEmpleadoUnico());
+                profesor.setCorreo(correo);
+                profesor.setPassword(passwordEncoder.encode(passwordTemporal));
+
+                Profesor profesorGuardado = profesorRepository.save(profesor);
+
+                // Construir y devolver el DTO de respuesta
+                return CreateUsuarioResponse.builder()
+                        .nombre(profesorGuardado.getNombre())
+                        .apellido(profesorGuardado.getApellido())
+                        .correo(profesorGuardado.getCorreo())
+                        .passwordTemporal(passwordTemporal)
+                        .numeroEmpleado(profesorGuardado.getNumeroEmpleado())
+                        .build();
+
+            case "ADMINISTRADOR":
                 Admin admin = new Admin();
                 admin.setNombre(request.getNombre());
                 admin.setApellido(request.getApellido());
-                admin.setCorreo(request.getCorreo());
-                admin.setPassword(passwordEncoder.encode(request.getPassword()));
-                admin.setFecha_creacion(LocalDateTime.now());
                 admin.setRol(rol);
-                return adminRepository.save(admin);
+                admin.setFecha_creacion(LocalDateTime.now());
+
+                // Generar y asignar datos automáticos
+                admin.setCorreo(correo);
+                admin.setPassword(passwordEncoder.encode(passwordTemporal));
+
+                Admin adminGuardado = adminRepository.save(admin);
+
+                // Construir y devolver el DTO de respuesta
+                return CreateUsuarioResponse.builder()
+                        .nombre(adminGuardado.getNombre())
+                        .apellido(adminGuardado.getApellido())
+                        .correo(adminGuardado.getCorreo())
+                        .passwordTemporal(passwordTemporal)
+                        .build();
 
             default:
                 throw new IllegalArgumentException("Tipo de rol no soportado para la creación: " + rol.getNombreRol());
@@ -164,5 +200,50 @@ public class UsuarioService {
         // 4. Encriptar y guardar la nueva contraseña
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         usuarioRepository.save(user);
+    }
+
+    private String generarCorreoUnico(String nombre, String apellido, String rol) {
+        // Normaliza el nombre y apellido para quitar acentos y espacios.
+        String base = Normalizer.normalize(nombre.split(" ")[0] + "." + apellido.split(" ")[0], Normalizer.Form.NFD)
+                .replaceAll("[^\\p{ASCII}]", "")
+                .toLowerCase();
+
+        String dominio = switch (rol) {
+            case "ALUMNO" -> "@alumnos.edu";
+            default -> "@universidad.edu";
+        };
+
+        String correoFinal = base + dominio;
+        int contador = 1;
+        // Si el correo ya existe, le añade un número hasta encontrar uno único.
+        while (usuarioRepository.findByCorreo(correoFinal).isPresent()) {
+            correoFinal = base + (contador++) + dominio;
+        }
+        return correoFinal;
+    }
+
+    private String generarMatriculaUnica() {
+        String matricula;
+        do {
+            // Genera un número aleatorio de 9 dígitos
+            long numero = ThreadLocalRandom.current().nextLong(100_000_000, 1_000_000_000);
+            matricula = String.valueOf(numero);
+        } while (alumnoRepository.findByMatricula(matricula).isPresent());
+        return matricula;
+    }
+
+    private String generarNumeroEmpleadoUnico() {
+        String numeroEmpleado;
+        do {
+            // Genera un número aleatorio de 6 dígitos
+            long numero = ThreadLocalRandom.current().nextLong(100_000, 1_000_000);
+            numeroEmpleado = String.valueOf(numero);
+        } while (profesorRepository.findByNumeroEmpleado(numeroEmpleado).isPresent());
+        return numeroEmpleado;
+    }
+
+    private String generarPasswordTemporal() {
+        // Genera una contraseña aleatoria de 8 caracteres
+        return java.util.UUID.randomUUID().toString().substring(0, 8);
     }
 }

@@ -1,19 +1,12 @@
 package io.github.dazj14.alumnia_api.controller;
 
-import io.github.dazj14.alumnia_api.dto.CreateGrupoRequest;
-import io.github.dazj14.alumnia_api.dto.CreateMateriaRequest;
-import io.github.dazj14.alumnia_api.dto.CreateUsuarioRequest;
+import io.github.dazj14.alumnia_api.dto.*;
 import io.github.dazj14.alumnia_api.model.Grupo;
 import io.github.dazj14.alumnia_api.model.Materia;
 import io.github.dazj14.alumnia_api.model.Usuario;
 import io.github.dazj14.alumnia_api.service.GrupoService;
 import io.github.dazj14.alumnia_api.service.MateriaService;
 import io.github.dazj14.alumnia_api.service.UsuarioService;
-import io.github.dazj14.alumnia_api.dto.UpdateMateriaRequest;
-import io.github.dazj14.alumnia_api.dto.UpdateUsuarioRequest;
-import io.github.dazj14.alumnia_api.dto.UsuarioDto;
-import io.github.dazj14.alumnia_api.dto.GrupoDto;
-import io.github.dazj14.alumnia_api.dto.UpdateGrupoRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -66,8 +59,8 @@ public class AdminController {
     }
 
     @PostMapping("/usuarios")
-    public ResponseEntity<Usuario> createUsuario(@RequestBody CreateUsuarioRequest request) {
-        Usuario nuevoUsuario = usuarioService.create(request);
+    public ResponseEntity<CreateUsuarioResponse> createUsuario(@RequestBody CreateUsuarioRequest request) {
+        CreateUsuarioResponse nuevoUsuario = usuarioService.create(request);
         return new ResponseEntity<>(nuevoUsuario, HttpStatus.CREATED);
     }
 

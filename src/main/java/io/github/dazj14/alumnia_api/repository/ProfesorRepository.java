@@ -9,6 +9,7 @@ import java.util.Optional;
 @Repository
 public interface ProfesorRepository extends JpaRepository<Profesor, Integer> {
     Optional<Profesor> findByCorreo(String correo);
+    Optional<Profesor> findByNumeroEmpleado(String numeroEmpleado);
 
     @Override
     Optional<Profesor> findById(Integer integer);
