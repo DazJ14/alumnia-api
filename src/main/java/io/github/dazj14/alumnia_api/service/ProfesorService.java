@@ -24,15 +24,26 @@ public class ProfesorService {
     private final PeriodoRepository periodoRepository;
     private final MateriaInscritaRepository materiaInscritaRepository;
     private final ActividadRepository actividadRepository;
-    private final CalificacionActividadRepository calificacionActividadRepository; // Añadir
+    private final CalificacionActividadRepository calificacionActividadRepository;
 
     @Transactional(readOnly = true)
     public List<GrupoAsignadoDto> findGruposAsignados(Integer profesorId) {
         var profesor = profesorRepository.findById(profesorId)
                 .orElseThrow(() -> new RuntimeException("Profesor no encontrado."));
-        var periodoActivo = periodoRepository.findTopByOrderByFechaInicioDesc()
-                .orElseThrow(() -> new RuntimeException("No hay un periodo activo configurado."));
 
+        return grupoRepository.findAllByProfesor_Id(profesorId).stream()
+                .map(grupo -> GrupoAsignadoDto.builder()
+                        .idGrupo(grupo.getId())
+                        .codigoGrupo(grupo.getCodigoGrupo())
+                        .nombreMateria(grupo.getMateria().getNombreMateria())
+                        .horario(grupo.getHorario().getNombreHorario())
+                        .salon(grupo.getSalon().getNombreSalon())
+                        .build())
+                .collect(Collectors.toList());
+        //var periodoActivo = periodoRepository.findTopByOrderByFechaInicioDesc()
+        //        .orElseThrow(() -> new RuntimeException("No hay un periodo activo configurado."));
+
+        /*
         return grupoRepository.findByProfesorAndPeriodo(profesor, periodoActivo).stream()
                 .map(grupo -> GrupoAsignadoDto.builder()
                         .idGrupo(grupo.getId())
@@ -42,6 +53,8 @@ public class ProfesorService {
                         .salon(grupo.getSalon().getNombreSalon())
                         .build())
                 .collect(Collectors.toList());
+
+         */
     }
 
     @Transactional(readOnly = true)

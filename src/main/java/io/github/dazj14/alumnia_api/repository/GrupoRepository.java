@@ -12,4 +12,6 @@ public interface GrupoRepository extends JpaRepository<Grupo, Integer> {
     List<Grupo> findByPeriodo(Periodo periodo);
 
     List<Grupo> findByProfesorAndPeriodo(Profesor profesor, Periodo periodo);
+
+    List<Grupo> findAllByProfesor_Id(Integer profesorId);
 }

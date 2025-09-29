@@ -3,6 +3,7 @@ import io.github.dazj14.alumnia_api.model.Profesor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
