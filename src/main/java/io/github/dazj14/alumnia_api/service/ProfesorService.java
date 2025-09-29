@@ -60,10 +60,13 @@ public class ProfesorService {
     }
 
     public ActividadDto createActividad(CreateActividadRequest request, Integer idGrupo, Integer profesorId) {
+        //verificacion de puntos maximo 100
         var profesor = getProfesorFromId(profesorId);
         var grupo = getGrupoFromId(idGrupo);
 
         validarProfesorDelGrupo(profesor, grupo);
+
+        //Integer sumaActual = actividadRepository;
 
         Actividad nuevaActividad = new Actividad();
         nuevaActividad.setGrupo(grupo);
@@ -88,6 +91,7 @@ public class ProfesorService {
 
     @Transactional
     public ActividadDto updateActividad(Integer idActividad, UpdateActividadRequest request, Integer profesorId) {
+        //verificacion de puntos maximo 100
         var profesor = getProfesorFromId(profesorId);
         var actividad = actividadRepository.findById(idActividad)
                 .orElseThrow(() -> new RuntimeException("Actividad no encontrada."));
@@ -174,6 +178,7 @@ public class ProfesorService {
 
     @Transactional
     public CalificacionDto asignarCalificacion(AsignarCalificacionRequest request, Integer idActividad, Integer profesorId) {
+        //verificacion de puntos maximo 100
         var profesor = getProfesorFromId(profesorId);
         var actividad = actividadRepository.findById(idActividad)
                 .orElseThrow(() -> new RuntimeException("Actividad no encontrada."));
