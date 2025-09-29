@@ -8,4 +8,7 @@ import java.util.Optional;
 @Repository
 public interface ProfesorRepository extends JpaRepository<Profesor, Integer> {
     Optional<Profesor> findByCorreo(String correo);
+
+    @Override
+    Optional<Profesor> findById(Integer integer);
 }

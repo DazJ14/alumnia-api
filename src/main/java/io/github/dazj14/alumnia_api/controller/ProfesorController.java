@@ -7,7 +7,6 @@ import io.github.dazj14.alumnia_api.dto.CreateActividadRequest;
 import io.github.dazj14.alumnia_api.service.ProfesorService;
 import io.github.dazj14.alumnia_api.dto.AsignarCalificacionRequest;
 import io.github.dazj14.alumnia_api.dto.CalificacionDto;
-import io.github.dazj14.alumnia_api.model.CalificacionActividad;
 import io.github.dazj14.alumnia_api.dto.UpdateActividadRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,8 +39,9 @@ public class ProfesorController {
     @GetMapping("/me/grupos")
     @PreAuthorize("hasRole('MAESTRO')")
     public ResponseEntity<List<GrupoAsignadoDto>> getMisGrupos(Principal principal) {
-        String profesorCorreo = principal.getName();
-        return ResponseEntity.ok(profesorService.findGruposAsignados(profesorCorreo));
+        System.out.println(principal.getName());
+        Integer profesorId = Integer.parseInt(principal.getName());
+        return ResponseEntity.ok(profesorService.findGruposAsignados(profesorId));
     }
 
     @Operation(summary = "Obtener la lista de alumnos de un grupo específico",
@@ -57,7 +57,8 @@ public class ProfesorController {
     @GetMapping("/grupos/{idGrupo}/actividades")
     @PreAuthorize("hasRole('MAESTRO')")
     public ResponseEntity<List<ActividadDto>> getActividadesDeGrupo(@PathVariable Integer idGrupo, Principal principal) {
-        var actividades = profesorService.findActividadesPorGrupo(idGrupo, principal.getName());
+        Integer profesorId = Integer.parseInt(principal.getName());
+        var actividades = profesorService.findActividadesPorGrupo(idGrupo, profesorId);
         return ResponseEntity.ok(actividades);
     }
 
@@ -68,7 +69,8 @@ public class ProfesorController {
     public ResponseEntity<ActividadDto> createActividad(@PathVariable Integer idGrupo,
                                                         @RequestBody CreateActividadRequest request,
                                                         Principal principal) {
-        var nuevaActividad = profesorService.createActividad(request, idGrupo, principal.getName());
+        Integer profesorId = Integer.parseInt(principal.getName());
+        var nuevaActividad = profesorService.createActividad(request, idGrupo, profesorId);
         return new ResponseEntity<>(nuevaActividad, HttpStatus.CREATED);
     }
 
@@ -77,7 +79,8 @@ public class ProfesorController {
     @GetMapping("/actividades/{idActividad}/calificaciones")
     @PreAuthorize("hasRole('MAESTRO')")
     public ResponseEntity<List<CalificacionDto>> getCalificacionesDeActividad(@PathVariable Integer idActividad, Principal principal) {
-        var calificaciones = profesorService.findCalificacionesPorActividad(idActividad, principal.getName());
+        Integer profesorId = Integer.parseInt(principal.getName());
+        var calificaciones = profesorService.findCalificacionesPorActividad(idActividad, profesorId);
         return ResponseEntity.ok(calificaciones);
     }
 
@@ -85,10 +88,11 @@ public class ProfesorController {
             description = "Permite al maestro asignar una calificacion en la actividad.")
     @PostMapping("/actividades/{idActividad}/calificaciones")
     @PreAuthorize("hasRole('MAESTRO')")
-    public ResponseEntity<CalificacionActividad> asignarCalificacion(@PathVariable Integer idActividad,
-                                                                     @RequestBody AsignarCalificacionRequest request,
-                                                                     Principal principal) {
-        var calificacionGuardada = profesorService.asignarCalificacion(request, idActividad, principal.getName());
+    public ResponseEntity<CalificacionDto> asignarCalificacion(@PathVariable Integer idActividad,
+                                                               @RequestBody AsignarCalificacionRequest request,
+                                                               Principal principal) {
+        Integer profesorId = Integer.parseInt(principal.getName());
+        var calificacionGuardada = profesorService.asignarCalificacion(request, idActividad, profesorId);
         return ResponseEntity.ok(calificacionGuardada);
     }
 
@@ -99,7 +103,8 @@ public class ProfesorController {
     public ResponseEntity<ActividadDto> updateActividad(@PathVariable Integer idActividad,
                                                         @RequestBody UpdateActividadRequest request,
                                                         Principal principal) {
-        var actividadActualizada = profesorService.updateActividad(idActividad, request, principal.getName());
+        Integer profesorId = Integer.parseInt(principal.getName());
+        var actividadActualizada = profesorService.updateActividad(idActividad, request, profesorId);
         return ResponseEntity.ok(actividadActualizada);
     }
 
@@ -108,7 +113,8 @@ public class ProfesorController {
     @DeleteMapping("/actividades/{idActividad}")
     @PreAuthorize("hasRole('MAESTRO')")
     public ResponseEntity<Void> deleteActividad(@PathVariable Integer idActividad, Principal principal) {
-        profesorService.deleteActividad(idActividad, principal.getName());
+        Integer profesorId = Integer.parseInt(principal.getName());
+        profesorService.deleteActividad(idActividad, profesorId);
         return ResponseEntity.noContent().build();
     }
 }

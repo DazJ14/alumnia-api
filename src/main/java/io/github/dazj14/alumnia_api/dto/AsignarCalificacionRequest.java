@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class AsignarCalificacionRequest {
-    private Integer idMateriaInscrita;
+    private Integer idAlumno;
     private Float calificacionObtenida;
     private String comentario;
 }

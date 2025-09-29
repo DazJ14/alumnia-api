@@ -1,20 +1,14 @@
 package io.github.dazj14.alumnia_api.service;
 
-import io.github.dazj14.alumnia_api.dto.AlumnoInscritoDto;
-import io.github.dazj14.alumnia_api.dto.CreateActividadRequest;
-import io.github.dazj14.alumnia_api.dto.GrupoAsignadoDto;
+import io.github.dazj14.alumnia_api.dto.*;
 import io.github.dazj14.alumnia_api.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import io.github.dazj14.alumnia_api.dto.ActividadDto;
 import io.github.dazj14.alumnia_api.model.Actividad;
 import io.github.dazj14.alumnia_api.model.Grupo;
 import io.github.dazj14.alumnia_api.model.Profesor;
-import io.github.dazj14.alumnia_api.dto.AsignarCalificacionRequest;
-import io.github.dazj14.alumnia_api.dto.CalificacionDto;
 import io.github.dazj14.alumnia_api.model.CalificacionActividad;
-import io.github.dazj14.alumnia_api.dto.UpdateActividadRequest;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -33,9 +27,8 @@ public class ProfesorService {
     private final CalificacionActividadRepository calificacionActividadRepository; // Añadir
 
     @Transactional(readOnly = true)
-    public List<GrupoAsignadoDto> findGruposAsignados(String profesorCorreo) {
-        System.out.println(profesorRepository.findByCorreo(profesorCorreo));
-        var profesor = profesorRepository.findByCorreo(profesorCorreo)
+    public List<GrupoAsignadoDto> findGruposAsignados(Integer profesorId) {
+        var profesor = profesorRepository.findById(profesorId)
                 .orElseThrow(() -> new RuntimeException("Profesor no encontrado."));
         var periodoActivo = periodoRepository.findTopByOrderByFechaInicioDesc()
                 .orElseThrow(() -> new RuntimeException("No hay un periodo activo configurado."));
@@ -69,8 +62,8 @@ public class ProfesorService {
                 .collect(Collectors.toList());
     }
 
-    public ActividadDto createActividad(CreateActividadRequest request, Integer idGrupo, String profesorCorreo) {
-        var profesor = getProfesorFromCorreo(profesorCorreo);
+    public ActividadDto createActividad(CreateActividadRequest request, Integer idGrupo, Integer profesorId) {
+        var profesor = getProfesorFromId(profesorId);
         var grupo = getGrupoFromId(idGrupo);
 
         validarProfesorDelGrupo(profesor, grupo);
@@ -85,8 +78,8 @@ public class ProfesorService {
         return toActividadDto(actividadGuardada);
     }
 
-    public List<ActividadDto> findActividadesPorGrupo(Integer idGrupo, String profesorCorreo) {
-        var profesor = getProfesorFromCorreo(profesorCorreo);
+    public List<ActividadDto> findActividadesPorGrupo(Integer idGrupo, Integer profesorId) {
+        var profesor = getProfesorFromId(profesorId);
         var grupo = getGrupoFromId(idGrupo);
 
         validarProfesorDelGrupo(profesor, grupo);
@@ -97,8 +90,8 @@ public class ProfesorService {
     }
 
     @Transactional
-    public ActividadDto updateActividad(Integer idActividad, UpdateActividadRequest request, String profesorCorreo) {
-        var profesor = getProfesorFromCorreo(profesorCorreo);
+    public ActividadDto updateActividad(Integer idActividad, UpdateActividadRequest request, Integer profesorId) {
+        var profesor = getProfesorFromId(profesorId);
         var actividad = actividadRepository.findById(idActividad)
                 .orElseThrow(() -> new RuntimeException("Actividad no encontrada."));
 
@@ -113,8 +106,8 @@ public class ProfesorService {
     }
 
     @Transactional
-    public void deleteActividad(Integer idActividad, String profesorCorreo) {
-        var profesor = getProfesorFromCorreo(profesorCorreo);
+    public void deleteActividad(Integer idActividad, Integer profesorId) {
+        var profesor = getProfesorFromId(profesorId);
         var actividad = actividadRepository.findById(idActividad)
                 .orElseThrow(() -> new RuntimeException("Actividad no encontrada."));
 
@@ -130,9 +123,8 @@ public class ProfesorService {
 
     // --- MÉTODOS PRIVADOS DE AYUDA ---
 
-    private Profesor getProfesorFromCorreo(String correo) {
-        return profesorRepository.findByCorreo(correo)
-                .orElseThrow(() -> new RuntimeException("Profesor no encontrado."));
+    private Profesor getProfesorFromId(Integer id) {
+        return profesorRepository.findById(id).orElseThrow(() -> new RuntimeException("Profesor no encontrado."));
     }
 
     private Grupo getGrupoFromId(Integer idGrupo) {
@@ -156,8 +148,8 @@ public class ProfesorService {
     }
 
     @Transactional(readOnly = true)
-    public List<CalificacionDto> findCalificacionesPorActividad(Integer idActividad, String profesorCorreo) {
-        var profesor = getProfesorFromCorreo(profesorCorreo);
+    public List<CalificacionDto> findCalificacionesPorActividad(Integer idActividad, Integer profesorId) {
+        var profesor = getProfesorFromId(profesorId);
         var actividad = actividadRepository.findById(idActividad)
                 .orElseThrow(() -> new RuntimeException("Actividad no encontrada."));
 
@@ -184,21 +176,19 @@ public class ProfesorService {
     }
 
     @Transactional
-    public CalificacionActividad asignarCalificacion(AsignarCalificacionRequest request, Integer idActividad, String profesorCorreo) {
-        var profesor = getProfesorFromCorreo(profesorCorreo);
+    public CalificacionDto asignarCalificacion(AsignarCalificacionRequest request, Integer idActividad, Integer profesorId) {
+        var profesor = getProfesorFromId(profesorId);
         var actividad = actividadRepository.findById(idActividad)
                 .orElseThrow(() -> new RuntimeException("Actividad no encontrada."));
-        var inscripcion = materiaInscritaRepository.findById(request.getIdMateriaInscrita())
+        var inscripcion = materiaInscritaRepository.findById(request.getIdAlumno())
                 .orElseThrow(() -> new RuntimeException("Inscripción no encontrada."));
 
+
         validarProfesorDelGrupo(profesor, actividad.getGrupo());
-        if (!inscripcion.getGrupo().getId().equals(actividad.getGrupo().getId())) {
-            throw new SecurityException("La inscripción del alumno no corresponde al grupo de esta actividad.");
-        }
 
         CalificacionActividad calificacion = calificacionActividadRepository
                 .findByMateriaInscritaAndActividad(inscripcion, actividad)
-                .orElse(new CalificacionActividad()); // Crea una nueva si no existe
+                .orElse(new CalificacionActividad());
 
         calificacion.setMateriaInscrita(inscripcion);
         calificacion.setActividad(actividad);
@@ -206,6 +196,16 @@ public class ProfesorService {
         calificacion.setComentario(request.getComentario());
         calificacion.setFechaRegistro(LocalDateTime.now());
 
-        return calificacionActividadRepository.save(calificacion);
+        calificacion = calificacionActividadRepository.save(calificacion);
+
+        return CalificacionDto.builder()
+                .idMateriaInscrita(inscripcion.getId())
+                .nombreAlumno(inscripcion.getAlumno().getNombre() + " " + inscripcion.getAlumno().getApellido())
+                .matricula(inscripcion.getAlumno().getMatricula())
+                .idCalificacion(calificacion.getId())
+                .calificacionObtenida(calificacion.getCalificacionObtenida())
+                .fechaRegistro(calificacion.getFechaRegistro())
+                .comentario(calificacion.getComentario())
+                .build();
     }
 }
