@@ -1,18 +1,16 @@
 package io.github.dazj14.alumnia_api.service;
 
 import io.github.dazj14.alumnia_api.dto.*;
+import io.github.dazj14.alumnia_api.model.*;
 import io.github.dazj14.alumnia_api.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import io.github.dazj14.alumnia_api.model.Actividad;
-import io.github.dazj14.alumnia_api.model.Grupo;
-import io.github.dazj14.alumnia_api.model.Profesor;
-import io.github.dazj14.alumnia_api.model.CalificacionActividad;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +23,7 @@ public class ProfesorService {
     private final MateriaInscritaRepository materiaInscritaRepository;
     private final ActividadRepository actividadRepository;
     private final CalificacionActividadRepository calificacionActividadRepository;
+    private final AlumnoRepository alumnoRepository;
 
     @Transactional(readOnly = true)
     public List<GrupoAsignadoDto> findGruposAsignados(Integer profesorId) {
@@ -40,21 +39,6 @@ public class ProfesorService {
                         .salon(grupo.getSalon().getNombreSalon())
                         .build())
                 .collect(Collectors.toList());
-        //var periodoActivo = periodoRepository.findTopByOrderByFechaInicioDesc()
-        //        .orElseThrow(() -> new RuntimeException("No hay un periodo activo configurado."));
-
-        /*
-        return grupoRepository.findByProfesorAndPeriodo(profesor, periodoActivo).stream()
-                .map(grupo -> GrupoAsignadoDto.builder()
-                        .idGrupo(grupo.getId())
-                        .codigoGrupo(grupo.getCodigoGrupo())
-                        .nombreMateria(grupo.getMateria().getNombreMateria())
-                        .horario(grupo.getHorario().getNombreHorario())
-                        .salon(grupo.getSalon().getNombreSalon())
-                        .build())
-                .collect(Collectors.toList());
-
-         */
     }
 
     @Transactional(readOnly = true)
@@ -193,9 +177,10 @@ public class ProfesorService {
         var profesor = getProfesorFromId(profesorId);
         var actividad = actividadRepository.findById(idActividad)
                 .orElseThrow(() -> new RuntimeException("Actividad no encontrada."));
-        var inscripcion = materiaInscritaRepository.findById(request.getIdAlumno())
-                .orElseThrow(() -> new RuntimeException("Inscripción no encontrada."));
-
+        var alumno = alumnoRepository.findById(request.getIdAlumno())
+                .orElseThrow(() -> new RuntimeException("Alumno no encontrado."));
+        var grupo = grupoRepository.findById(request.getIdGrupo()).orElseThrow(() -> new RuntimeException("Grupo no encontrado."));
+        var inscripcion = materiaInscritaRepository.findByAlumnoAndGrupo(alumno, grupo);
 
         validarProfesorDelGrupo(profesor, actividad.getGrupo());
 

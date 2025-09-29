@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MateriaInscritaRepository extends JpaRepository<MateriaInscrita, Integer> {
@@ -19,6 +20,8 @@ public interface MateriaInscritaRepository extends JpaRepository<MateriaInscrita
     List<MateriaInscrita> findByAlumnoAndGrupo_Periodo(Alumno alumno, Periodo periodo);
     List<MateriaInscrita> findByGrupo(Grupo grupo);
     List<MateriaInscrita> findByAlumnoAndGrupo_PeriodoNot(Alumno alumno, Periodo periodo);
+
+    MateriaInscrita findByAlumnoAndGrupo(Alumno alumno, Grupo grupo);
     /**
      * Busca las materias inscritas de un alumno por su ID y un estatus específico,
      * ignorando mayúsculas y minúsculas en el estatus.
